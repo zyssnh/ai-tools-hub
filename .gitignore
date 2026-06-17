@@ -1,0 +1,14 @@
+# Secrets
+.env
+
+# Persistent volumes
+volumes/workspace/
+volumes/configs/
+volumes/openclaw-data/
+volumes/hermes-data/
+volumes/opencode-config/
+volumes/cli-tools-home/
+
+# Keep directory structure
+!volumes/**/.gitkeep
+.claude/

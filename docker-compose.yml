@@ -1,0 +1,188 @@
+# ============================================================
+# AI Tools Hub — Docker Compose Orchestration
+# ============================================================
+# Usage:
+#   docker compose up -d              # start all services
+#   docker compose down               # stop all services
+#   docker compose logs -f <service>  # tail logs of a service
+# ============================================================
+
+services:
+  # ════════════════════════════════════════════════════════
+  # 1. NGINX — Reverse Proxy + Landing Page
+  # ════════════════════════════════════════════════════════
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: ai-tools-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+    networks:
+      - ai-tools-net
+    depends_on:
+      openclaw:
+        condition: service_healthy
+      hermes:
+        condition: service_healthy
+      opencode:
+        condition: service_healthy
+      terminal:
+        condition: service_started
+
+  # ════════════════════════════════════════════════════════
+  # 2. OPENCLAW — AI Agent Gateway
+  # ════════════════════════════════════════════════════════
+  openclaw:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: ai-tools-openclaw
+    restart: unless-stopped
+    environment:
+      HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /workspace
+      OPENCLAW_GATEWAY_BIND: "0.0.0.0:18789"
+      OPENCLAW_GATEWAY_PORT: "18789"
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_GATEWAY_CONTROLUI_BASEPATH: /openclaw
+      OPENCLAW_GATEWAY_CONTROLUI_ALLOWEDORIGINS: ${OPENCLAW_ALLOWED_ORIGINS:-}
+      OPENCLAW_DISABLE_BONJOUR: "1"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./volumes/openclaw-data:/home/node/.openclaw
+      - ./volumes/workspace:/workspace
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ai-tools-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:18789/healthz').then(function(r){process.exit(r.ok?0:1)}).catch(function(){process.exit(1)})",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ════════════════════════════════════════════════════════
+  # 3. HERMES AGENT — Self-Improving AI Agent
+  # ════════════════════════════════════════════════════════
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: ai-tools-hermes
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      HERMES_DASHBOARD: "true"
+      HERMES_DASHBOARD_HOST: "0.0.0.0"
+      HERMES_DASHBOARD_PORT: "9119"
+      HERMES_DASHBOARD_BASIC_AUTH_USERNAME: ${HERMES_DASHBOARD_USERNAME:-admin}
+      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD: ${HERMES_DASHBOARD_PASSWORD:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      HERMES_UID: "${UID:-1000}"
+      HERMES_GID: "${GID:-1000}"
+    volumes:
+      - ./volumes/hermes-data:/opt/data
+      - ./volumes/workspace:/workspace
+    networks:
+      - ai-tools-net
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9119/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ════════════════════════════════════════════════════════
+  # 4. OPENCODE — Open-Source Coding Agent Web UI
+  # ════════════════════════════════════════════════════════
+  opencode:
+    image: ghcr.io/anomalyco/opencode:latest
+    container_name: ai-tools-opencode
+    restart: unless-stopped
+    entrypoint:
+      ["opencode", "web", "--hostname", "0.0.0.0", "--port", "4096"]
+    environment:
+      WORKDIR: /workspace
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./volumes/opencode-config:/root/.config/opencode
+      - ./volumes/workspace:/workspace
+    networks:
+      - ai-tools-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4096/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  # ════════════════════════════════════════════════════════
+  # 5. TERMINAL — ttyd + tmux + All CLI Tools
+  # ════════════════════════════════════════════════════════
+  terminal:
+    build:
+      context: ./cli-tools
+      dockerfile: Dockerfile
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    container_name: ai-tools-terminal
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    environment:
+      HOME: /home/dev
+      TERM: xterm-256color
+      TZ: ${TZ:-UTC}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:-}
+      KIMI_API_KEY: ${MOONSHOT_API_KEY:-}
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-AI Tools User}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-ai@tools.local}
+      PATH: /home/dev/.npm-global/bin:/home/dev/.local/bin:/home/dev/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      UV_CACHE_DIR: /home/dev/.cache/uv
+      TTYD_USERNAME: ${TTYD_USERNAME:-admin}
+      TTYD_PASSWORD: ${TTYD_PASSWORD:-changeme}
+    volumes:
+      - ./volumes/workspace:/workspace
+      - ./volumes/cli-tools-home:/home/dev
+      - ./cli-tools/tmux.conf:/home/dev/.tmux.conf:ro
+    working_dir: /workspace
+    networks:
+      - ai-tools-net
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+
+# ═══════════════════════════════════════════════════════════
+# NETWORK
+# ═══════════════════════════════════════════════════════════
+networks:
+  ai-tools-net:
+    name: ai-tools-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

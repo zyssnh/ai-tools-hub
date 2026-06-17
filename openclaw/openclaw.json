@@ -1,0 +1,24 @@
+# ============================================================
+# OpenClaw — AI Agent Gateway Configuration
+# Docs: https://docs.openclaw.ai
+# ============================================================
+
+{
+  "gateway": {
+    "bind": "0.0.0.0:18789",
+    "port": 18789,
+    "controlui": {
+      "basepath": "/openclaw",
+      "allowedorigins": ["http://localhost", "http://127.0.0.1"]
+    },
+    "auth": {
+      "mode": "token"
+    }
+  },
+  "workspace": "/workspace",
+  "agents": {
+    "defaults": {
+      "model": "anthropic/claude-sonnet-4-20250514"
+    }
+  }
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tools Hub</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d2991d;
+    --purple: #a371f7;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 960px;
+    width: 100%;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color 0.2s, transform 0.15s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .card-icon {
+    font-size: 1.8rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .icon-webui { background: #1a3a5c; }
+  .icon-terminal { background: #1a3c1a; }
+  .card-title { font-size: 1.1rem; font-weight: 600; }
+  .card-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: var(--border);
+    color: var(--muted);
+  }
+  .badge-green { background: #1a3c1a; color: var(--green); }
+  .badge-purple { background: #2a1a3c; color: var(--purple); }
+  .badge-orange { background: #3c2a1a; color: var(--orange); }
+  .footer {
+    margin-top: 48px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛠 AI Tools Hub</h1>
+  <p>浏览器内的多 AI 编程助手聚合入口</p>
+</header>
+
+<div class="grid">
+
+  <!-- OpenClaw -->
+  <a href="/openclaw/" class="card">
+    <div class="card-header">
+      <div class="card-icon icon-webui">🦞</div>
+      <div class="card-title">OpenClaw</div>
+    </div>
+    <div class="card-desc">开源 AI Agent 网关 — 多平台消息接入 + 多 Agent 路由 + Web Control UI</div>
+    <div class="badge-row">
+      <span class="badge badge-green">Web UI</span>
+      <span class="badge">Telegram</span>
+      <span class="badge">Discord</span>
+    </div>
+  </a>
+
+  <!-- Hermes Agent -->
+  <a href="/hermes/" class="card">
+    <div class="card-header">
+      <div class="card-icon icon-webui">🧠</div>
+      <div class="card-title">Hermes Agent</div>
+    </div>
+    <div class="card-desc">自我改进 AI Agent — 内置学习循环 + 跨会话记忆 + 20+ 消息平台 + Dashboard</div>
+    <div class="badge-row">
+      <span class="badge badge-green">Web UI</span>
+      <span class="badge badge-purple">学习循环</span>
+      <span class="badge">Playwright</span>
+    </div>
+  </a>
+
+  <!-- OpenCode -->
+  <a href="/opencode/" class="card">
+    <div class="card-header">
+      <div class="card-icon icon-webui">📟</div>
+      <div class="card-title">OpenCode</div>
+    </div>
+    <div class="card-desc">开源 AI Coding Agent — Web IDE + HTTP API + 多 Provider 支持 + 插件系统</div>
+    <div class="badge-row">
+      <span class="badge badge-green">Web UI</span>
+      <span class="badge badge-purple">多 Provider</span>
+      <span class="badge">SSH</span>
+    </div>
+  </a>
+
+  <!-- Terminal with CLI tools -->
+  <a href="/terminal/" class="card">
+    <div class="card-header">
+      <div class="card-icon icon-terminal">💻</div>
+      <div class="card-title">CLI 工具终端</div>
+    </div>
+    <div class="card-desc">Web 浏览器内的终端模拟器 (ttyd + tmux)，多标签页切换访问 CLI AI 编程工具</div>
+    <div class="badge-row">
+      <span class="badge badge-orange">Claude Code</span>
+      <span class="badge badge-orange">MiMo Code</span>
+      <span class="badge badge-orange">Kimi Code</span>
+      <span class="badge badge-orange">Pi</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">
+  Docker Compose · Nginx · tmux · ttyd<br>
+  所有容器通过 ai-tools-net 内部通信
+</div>
+
+</body>
+</html>
