@@ -6,7 +6,7 @@ FROM debian:bookworm-slim
 ARG UID=1000
 ARG GID=1000
 
-# ── System packages ─────────────────────────────────────
+# System packages & Node.js
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates gnupg git build-essential \
     python3 python3-pip python3-venv \
@@ -22,12 +22,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# ── ttyd (web terminal) ─────────────────────────────────
-# Latest release binary for x86_64
+# ttyd — web terminal
 ADD https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 /usr/local/bin/ttyd
 RUN chmod +x /usr/local/bin/ttyd
 
-# ── Non-root user setup ─────────────────────────────────
+# Entrypoint — placed at / (outside /home/dev) so volume mounts don't shadow it
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Non-root user
 RUN groupadd -g ${GID} dev && \
     useradd -m -u ${UID} -g dev -s /bin/bash dev && \
     mkdir -p /home/dev/.npm-global /home/dev/.local/bin /home/dev/.config /home/dev/.cache && \
@@ -41,31 +44,25 @@ ENV UV_CACHE_DIR=/home/dev/.cache/uv
 
 WORKDIR /workspace
 
-# ── uv — Python package manager (for Kimi Code) ─────────
+# uv — Python package manager (for Kimi Code)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# ── Claude Code — Anthropic official CLI ────────────────
-# Uses native installer (npm package is deprecated)
+# Claude Code — Anthropic official CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
-# ── MiMo Code — Xiaomi AI Coding CLI ────────────────────
+# MiMo Code — Xiaomi AI Coding CLI
 RUN npm install -g @mimo-ai/cli 2>/dev/null || \
     curl -fsSL https://mimo.xiaomi.com/install | bash 2>/dev/null || \
-    echo "[warn] MiMo Code install skipped — will retry manually in container"
+    echo "[warn] MiMo Code install skipped"
 
-# ── Pi Coding Agent — Minimalist AI Coding CLI ─────────
+# Pi Coding Agent — Minimalist AI Coding CLI
 RUN npm install -g @mariozechner/pi-coding-agent 2>/dev/null || \
-    echo "[warn] Pi install skipped — will retry manually in container"
+    echo "[warn] Pi install skipped"
 
-# ── Kimi Code — Moonshot AI Python CLI ──────────────────
+# Kimi Code — Moonshot AI Python CLI
 RUN uv tool install kimi-cli 2>/dev/null || \
     pip install kimi-cli --break-system-packages 2>/dev/null || \
-    echo "[warn] Kimi Code install skipped — will retry manually in container"
-
-# ── Entrypoint ──────────────────────────────────────────
-COPY --chown=dev:dev entrypoint.sh /home/dev/entrypoint.sh
-RUN chmod +x /home/dev/entrypoint.sh
+    echo "[warn] Kimi Code install skipped"
 
 EXPOSE 7681
-
-ENTRYPOINT ["/home/dev/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
