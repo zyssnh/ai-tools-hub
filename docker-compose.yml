@@ -21,14 +21,10 @@ services:
     networks:
       - ai-tools-net
     depends_on:
-      openclaw:
-        condition: service_healthy
-      hermes:
-        condition: service_healthy
-      opencode:
-        condition: service_healthy
-      terminal:
-        condition: service_started
+      - openclaw
+      - hermes
+      - opencode
+      - terminal
 
   # ════════════════════════════════════════════════════════
   # 2. OPENCLAW — AI Agent Gateway
@@ -37,6 +33,8 @@ services:
     image: ghcr.io/openclaw/openclaw:latest
     container_name: ai-tools-openclaw
     restart: unless-stopped
+    # --allow-unconfigured bypasses "openclaw setup" requirement
+    command: ["node", "openclaw.mjs", "gateway", "--allow-unconfigured"]
     environment:
       HOME: /home/node
       OPENCLAW_STATE_DIR: /home/node/.openclaw
@@ -71,7 +69,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 30s
 
   # ════════════════════════════════════════════════════════
   # 3. HERMES AGENT — Self-Improving AI Agent
@@ -80,6 +78,10 @@ services:
     image: nousresearch/hermes-agent:latest
     container_name: ai-tools-hermes
     restart: unless-stopped
+    # stdin_open + tty give the interactive agent a pseudo-TTY
+    # so it doesn't exit immediately with "Input is not a terminal"
+    stdin_open: true
+    tty: true
     environment:
       TZ: ${TZ:-UTC}
       HERMES_DASHBOARD: "true"
