@@ -12,9 +12,8 @@ services:
   # 1. NGINX — Reverse Proxy + Landing Page
   # ════════════════════════════════════════════════════════
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: zyssnh/ai-tools-nginx:latest
+    # For local dev: use "build: ./nginx" instead
     container_name: ai-tools-nginx
     restart: unless-stopped
     ports:
@@ -139,12 +138,8 @@ services:
   # 5. TERMINAL — ttyd + tmux + All CLI Tools
   # ════════════════════════════════════════════════════════
   terminal:
-    build:
-      context: ./cli-tools
-      dockerfile: Dockerfile
-      args:
-        UID: "${UID:-1000}"
-        GID: "${GID:-1000}"
+    image: zyssnh/ai-tools-terminal:latest
+    # For local dev: build with "docker build -t zyssnh/ai-tools-terminal ./cli-tools"
     container_name: ai-tools-terminal
     restart: unless-stopped
     stdin_open: true
