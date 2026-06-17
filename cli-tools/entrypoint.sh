@@ -67,6 +67,5 @@ fi
 exec ttyd \
     -W \
     -p 7681 \
-    -b /terminal \
     -c "${TTYD_USERNAME:-admin}:${TTYD_PASSWORD:-changeme}" \
     tmux new-session -A -s "$SESSION"
